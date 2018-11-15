@@ -1,2 +1,25 @@
 #Projekt 1 z Technologii Mowy
 
+#random file to check
+
+import audio_reader as read
+import mfcc_gen as mfcc
+import GMM
+import GMM_vis as plt
+from matplotlib import pyplot as plot
+import numpy as np
+from sklearn.mixture import GaussianMixture
+
+
+sampleRate, dataRead = read.audio_reader("a.wav")
+data2 = mfcc.mfcc_gen(dataRead, sampleRate)
+sampleRate2, data3 = read.audio_reader("i.wav")
+data4 = mfcc.mfcc_gen(data3, sampleRate2)
+
+for i in np.arange(1, 50, 1):
+    afterGMMI = GMM.GMM(data4[:, 0:1], i, 25)
+    afterGMMA = GMM.GMM(data2[:, 0:1], i, 25)
+
+    print(afterGMMI.bic(data4[:, 0:1]))
+    print(afterGMMA.bic(data2[:, 0:1]))
+
