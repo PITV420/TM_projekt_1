@@ -1,5 +1,7 @@
 from python_speech_features import mfcc
+from audio_reader import audio_reader
 import numpy as np
+import os
 
 
 def loadConfig(path):
@@ -55,9 +57,23 @@ def computeMFCC(data, fs, cfg):
     return data_mfcc
 
 
+def getData(directory, file):
+    path = directory + '/' + file
+    samples, rate = audio_reader(path)
+    return samples, rate, file[:4], path
+
+
+def save():
+    return
+
+
 config = loadConfig('config/mfcc.cfg')
 
 print('config:')
 for item in config:
     print('-', item, '=', config[item])
 print('')
+
+file_directory = 'files/train'
+for filename in os.listdir(file_directory):
+    print(getData(file_directory, filename))
