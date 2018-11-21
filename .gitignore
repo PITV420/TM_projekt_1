@@ -103,9 +103,8 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-
 # pycharm
 .idea/
 
-# pliki testowe
-files/
+# training files
+files/train/
