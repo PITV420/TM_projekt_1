@@ -1,7 +1,14 @@
 from python_speech_features import mfcc
-from audio_reader import audio_reader
+import scipy.io.wavfile as wav
 import numpy as np
 import os
+import pickle
+
+
+def audio_reader(path):
+    sampleRate, channel = wav.read(path)
+    channel = channel/32768
+    return channel, sampleRate
 
 
 def loadConfig(path):
@@ -60,20 +67,28 @@ def computeMFCC(data, fs, cfg):
 def getData(directory, file):
     path = directory + '/' + file
     samples, rate = audio_reader(path)
-    return samples, rate, file[:4], path
+    return samples, rate, file[6] + '_' + file[:5], path
 
 
-def save():
-    return
+def save(obj):
+    file = open('files/parametrized.p', 'wb')
+    pickle.dump(obj, file)
 
 
 config = loadConfig('config/mfcc.cfg')
 
-print('config:')
-for item in config:
-    print('-', item, '=', config[item])
-print('')
+#print('config:')
+#for item in config:
+#    print('-', item, '=', config[item])
+#print('')
+
+parameters = {}
 
 file_directory = 'files/train'
 for filename in os.listdir(file_directory):
-    print(getData(file_directory, filename))
+    if filename.endswith('.wav'):
+        data_ = getData(file_directory, filename)
+        parameters[data_[2]] = (computeMFCC(data_[0], data_[1], config), data_[3])
+        #print(parameters[data_[2]])
+
+save(parameters)
