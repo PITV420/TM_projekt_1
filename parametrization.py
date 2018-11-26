@@ -70,6 +70,32 @@ def getData(directory, file):
     return samples, rate, file[6] + '_' + file[:5], path
 
 
+def restructure(data):
+    """
+    Changing data save format
+
+    Returns data as a dictionary of dictionaries in following order:
+
+        Speaker1,   Speaker2,   Speaker3,   ...
+    0:  data        data        data        ...
+    1:  data        data        data        ...
+    2:  data        data        data        ...
+    ... ...         ...         ...         ...
+
+    Access elements by restructured[Number][Speaker]
+    IMPORTANT: Both keys are string values!
+
+    """
+    restructured = {}
+    for i in range(10):
+        restructured[str(i)] = {}
+
+    for key in data:
+        restructured[key[0]][key[2:]] = data[key]
+
+    return restructured
+
+
 def save(obj):
     file = open('files/parametrized.p', 'wb')
     pickle.dump(obj, file)
@@ -77,18 +103,14 @@ def save(obj):
 
 config = loadConfig('config/mfcc.cfg')
 
-#print('config:')
-#for item in config:
-#    print('-', item, '=', config[item])
-#print('')
-
 parameters = {}
 
 file_directory = 'files/train'
 for filename in os.listdir(file_directory):
     if filename.endswith('.wav'):
         data_ = getData(file_directory, filename)
-        parameters[data_[2]] = (computeMFCC(data_[0], data_[1], config), data_[3])
-        #print(parameters[data_[2]])
+        parameters[data_[2]] = computeMFCC(data_[0], data_[1], config)
 
-save(parameters)
+rest = restructure(parameters)
+
+save(rest)
