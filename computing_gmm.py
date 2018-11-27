@@ -58,7 +58,8 @@ def eachDigitGMM(data, cfg):
         for key2 in data[key1]:
             if key2 == list(data[key1].keys())[0]:
                 aux_mfcc = data[key1][key2]
-            aux_mfcc = np.concatenate((aux_mfcc, data[key1][key2]), axis=0)
+            elif key2 > list(data[key1].keys())[0]:
+                aux_mfcc = np.concatenate((aux_mfcc, data[key1][key2]), axis=0)
         data_mfcc[key1] = compute_gmm(aux_mfcc, cfg)
 
     return data_mfcc
