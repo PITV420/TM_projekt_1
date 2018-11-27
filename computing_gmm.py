@@ -52,17 +52,41 @@ config = loadConfig('config/gmm.cfg')
 
 
 def eachDigitGMM(data, cfg):
+
+    """
+    Creates a dictionary consisting of connected matrices of MFCC for every speaker,
+    into one matrix for particular digit:
+
+        0: [[MFCC_Speaker_1_digit_0]
+            [MFCC_Speaker_2_digit_0]
+            .
+            .
+            .
+            [MFCC_Speaker_22_digit_0]]
+        .
+        .
+        .
+        9: [[MFCC_Speaker_1_digit_9]
+            [MFCC_Speaker_2_digit_9]
+            .
+            .
+            .
+            [MFCC_Speaker_22_digit_9]]
+
+        Returns GMM for matrix for each digit separately.
+    """
+
+    data_gmm = {}
     data_mfcc = {}
-    aux_mfcc = {}
     for key1 in data:
         for key2 in data[key1]:
             if key2 == list(data[key1].keys())[0]:
-                aux_mfcc = data[key1][key2]
+                data_mfcc = data[key1][key2]
             elif key2 > list(data[key1].keys())[0]:
-                aux_mfcc = np.concatenate((aux_mfcc, data[key1][key2]), axis=0)
-        data_mfcc[key1] = compute_gmm(aux_mfcc, cfg)
+                data_mfcc = np.concatenate((data_mfcc, data[key1][key2]), axis=0)
+        data_gmm[key1] = compute_gmm(data_mfcc, cfg)
 
-    return data_mfcc
+    return data_gmm
 
 def save(obj):
     file = open('files/digits_gmm.p', 'wb')
