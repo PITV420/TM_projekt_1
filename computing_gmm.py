@@ -42,32 +42,34 @@ def loadConfig(path):
     return cfg
 
 
-def compute_gmm(data_mfcc, cfg):
+def compute_gmm(data, cfg):
     return GaussianMixture(n_components=cfg['components'], covariance_type=cfg['covariance_type'],
-                               max_iter=cfg['max_iterations'], tol=cfg['toleration']).fit(data_mfcc)
-
-"""
-    gauss_data = 0
-    
-    means_data = gmm_data.means_[:, feature]
-    weights_data = gmm_data.weights_
-    covs_data = gmm_data.covariances[:, feature]
-
-    left = min(data_mfcc[:, feature])
-    right = max(data_mfcc[:, feature])
-    x = np.arange(left, right, 0.001)
-
-    for i in range(len(means_data)):
-        gauss_data = gauss_data + norm.pdf(x, means_data[i], covs_data[i]) * weights_data[i]
-
-    return gauss_data
-"""
+                               max_iter=cfg['max_iterations'], tol=cfg['toleration']).fit(data)
 
 
-data = loadData('files/parametrized.p')
+parametrized_data = loadData('files/parametrized.p')
 config = loadConfig('config/gmm.cfg')
 
-gmm_models = {}
-for key in data:
-    gmm_models[key] = compute_gmm(data[key][0], config)
-gmm_models = collections.OrderedDict(sorted(gmm_models.items()))
+
+def eachDigitGMM(data, cfg):
+    data_mfcc = {}
+    aux_mfcc = {}
+    for key1 in data:
+        for key2 in data[key1]:
+            if key2 == list(data[key1].keys())[0]:
+                aux_mfcc = data[key1][key2]
+            aux_mfcc = np.concatenate((aux_mfcc, data[key1][key2]), axis=0)
+        data_mfcc[key1] = compute_gmm(aux_mfcc, cfg)
+
+    return data_mfcc
+
+def save(obj):
+    file = open('files/digits_gmm.p', 'wb')
+    pickle.dump(obj, file)
+
+
+data = eachDigitGMM(parametrized_data, config)
+
+save(data)
+
+
