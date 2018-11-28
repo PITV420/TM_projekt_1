@@ -74,24 +74,25 @@ def restructure(data):
     """
     Changing data save format
 
-    Returns data as a dictionary of dictionaries in following order:
+    Returns data as a list of lists in following order:
 
-        Speaker1,   Speaker2,   Speaker3,   ...
-    0:  data        data        data        ...
-    1:  data        data        data        ...
-    2:  data        data        data        ...
-    ... ...         ...         ...         ...
+    Speakers:   0,      1,      2,      ...
+    Digits:
+    0:          data    data    data    ...
+    1:          data    data    data    ...
+    2:          data    data    data    ...
+    ...         ...     ...     ...     ...
 
-    Access elements by restructured[Number][Speaker]
+    Access elements by restructured[Digit index][Speaker index]
     IMPORTANT: Both keys are string values!
 
     """
-    restructured = {}
+    restructured = []
     for i in range(10):
-        restructured[str(i)] = {}
+        restructured.append([])
 
     for key in data:
-        restructured[key[0]][key[2:]] = data[key]
+        restructured[int(key[0])].append(data[key])
 
     return restructured
 
@@ -112,5 +113,6 @@ for filename in os.listdir(file_directory):
         parameters[data_[2]] = computeMFCC(data_[0], data_[1], config)
 
 rest = restructure(parameters)
-
 save(rest)
+
+print(rest[0].shape)
