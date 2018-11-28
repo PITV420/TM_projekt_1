@@ -114,5 +114,3 @@ for filename in os.listdir(file_directory):
 
 rest = restructure(parameters)
 save(rest)
-
-print(rest[0].shape)

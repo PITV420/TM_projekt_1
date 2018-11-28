@@ -1,11 +1,6 @@
-from sklearn.model_selection import cross_val_score
 from sklearn.mixture import GaussianMixture
-from sklearn.model_selection import KFold
 from sklearn.model_selection import train_test_split
-from sklearn import svm
-from sklearn.linear_model import LassoCV
 import numpy as np
-import math
 import pickle
 
 
@@ -47,44 +42,26 @@ def loadData(pathMFCC, pathGMM):
     return pickle.load(fileMFCC), pickle.load(fileGMM)
 
 
-"""
-def eachDigitTest(data, GMM):
-    aux = {}
-    rr = {}
-    for key1 in data:
-        for key2 in data[key1]:
-            if key2 == list(data[key1].keys())[0]:
-                aux = data[key1][key2]
-            aux = np.concatenate((aux, data[key1][key2]), axis=0)
-        rr[key1] = calcRR(GMM[key1].score_samples(aux), aux)
-    return rr
-"""
-
-"""
-def calcRR(gmm_samples, mfcc_matrix):
-
-    kf = KFold(n_splits=22)
-    rr={}
-
-    lasso_cv = LassoCV(alphas=mfcc_matrix, cv=kf.get_n_splits(mfcc_matrix))
-    for k, (train, test) in enumerate(kf.split(mfcc_matrix, gmm_samples)):
-        rr = np.concatenate(rr, lasso_cv.fit(mfcc_matrix[train], gmm_samples[train]).score(mfcc_matrix[test], gmm_samples[test]))
-
-    return rr
-"""
-
-
 def validate(data, cfg):
     estimator = GaussianMixture(n_components=cfg['components'], covariance_type=cfg['covariance_type'],
                                max_iter=cfg['max_iterations'], tol=cfg['toleration'])
 
-    train, test = train_test_split(data[0], test_size=0.2, random_state=None)
-    #cv = cross_val_score(estimator, data['0'], cv=5)
+    models = {}
+    test_set = {}
+    for i in range(10):
+        train, test = train_test_split(data[i], test_size=0.2, random_state=None)
+        test_set[i] = test
+        train_set = train[0]
+        for j in range(1, len(train)):
+            train_set = np.concatenate((train_set, train[i]), axis=0)
+        models[i] = estimator.fit(train_set)
 
-    return train, test
+    for i in test_set:
+        print(models[2].score(test_set[i][0]))
+
+    return models, test_set
 
 
 config = loadConfig('config/gmm.cfg')
 MFCC, GMM = loadData('files/parametrized.p', 'files/digits_gmm.p')
-train, test = validate(MFCC, config)
-#print(eachDigitTest(MFCC, GMM))
+models, test_set = validate(MFCC, config)
