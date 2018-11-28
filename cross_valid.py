@@ -26,8 +26,6 @@ def eachDigitTest(data, GMM):
     return rr
 
 
-
-
 def calcRR(gmm_samples, mfcc_matrix):
 
     kf = KFold(n_splits=22)
