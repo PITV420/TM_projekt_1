@@ -42,4 +42,7 @@ def calcRR(gmm_samples, mfcc_matrix):
 
 MFCC, GMM = loadData('files/parametrized.p', 'files/digits_gmm.p')
 
-print(eachDigitTest(MFCC, GMM))
+rrMatrix = eachDigitTest(MFCC, GMM)
+rrAll = np.mean(rrMatrix)
+
+print(rrMatrix)
