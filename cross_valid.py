@@ -24,7 +24,8 @@ def eachDigitTest(data, config):
         for key2 in data[key1]:
             if key2 == list(data[key1].keys())[0]:
                 aux = data[key1][key2]
-            aux = np.concatenate((aux, data[key1][key2]), axis=0)
+            else:
+                aux = np.concatenate((aux, data[key1][key2]), axis=0)
         rr1, train1, test1 = calcRR(aux, config)
         #tutaj trzeba zapis zrobić
 
