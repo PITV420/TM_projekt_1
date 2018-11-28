@@ -63,5 +63,8 @@ def validate(data, cfg):
 
 
 config = loadConfig('config/gmm.cfg')
-MFCC, GMM = loadData('files/parametrized.p', 'files/digits_gmm.p')
-models, test_set = validate(MFCC, config)
+MFCC, MFCC_labels = loadData('files/parametrized.p', 'files/mfcc_matrix_scheme.p')
+#models, test_set = validate(MFCC, config)
+
+for i in MFCC_labels:
+    print(i)
