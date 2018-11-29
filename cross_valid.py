@@ -84,12 +84,13 @@ def analyze(mfcc, gmm, digit):
 def trainModels(train, cfg):
     estimator = GaussianMixture(n_components=cfg['components'], covariance_type=cfg['covariance_type'],
                                max_iter=cfg['max_iterations'], tol=cfg['toleration'])
-    models = []
+    models = np.empty(10, dtype=GaussianMixture)
     for i in range(len(train)):
         data = train[i][0]
         for j in range(1, len(train[i])):
             data = np.concatenate((data, train[i][j]), axis=0)
-        models.append(estimator.fit(data))
+        model = estimator.fit(data)
+        models[i] = model
         #analyze(data, models[i], i)
 
     return models
@@ -108,7 +109,7 @@ MFCC, MFCC_labels = loadData('files/parametrized.p', 'files/mfcc_matrix_scheme.p
 
 train_, test_ = getSets(MFCC)
 models_ = trainModels(train_, config)
-matrix_ = validateModels(models_, test_)
+#matrix_ = validateModels(models_, test_)
 
 """
 for i in MFCC_labels:
