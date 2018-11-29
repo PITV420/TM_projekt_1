@@ -43,14 +43,19 @@ def loadData(pathMFCC, pathMFCC_labels):
     return pickle.load(fileMFCC), pickle.load(fileMFCC_labels)
 
 
-def trainDigit(data, cfg):
-    """ Input data must be just one digit! """
-
-    kf = KFold(n_splits=5)
-    for train_index, test_index in kf.split(data):
-        print(train_index, test_index)
-
+def validateDigit(data, cfg):
+    kf = KFold(n_splits=5, shuffle=False, random_state=None)
+    """ Split data into separate digits """
+    for digit in data:
+        """ Get indexes for train-test sets """
+        for train_index, test_index in kf.split(digit):
+            """ Concatenate train data into one matrix """
+            train_set = digit[0]
+            for i in range(1, len(digit)):
+                train_set = np.concatenate((train_set, digit[i]), axis=0)
+            print(train_set.shape)
 
 config = loadConfig('config/gmm.cfg')
 MFCC, MFCC_labels = loadData('files/parametrized.p', 'files/mfcc_matrix_scheme.p')
-trainDigit(MFCC_labels[0], config)
+MFCC, MFCC_labels = np.asarray(MFCC), np.asarray(MFCC_labels)
+validateDigit(MFCC, config)
