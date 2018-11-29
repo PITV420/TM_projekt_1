@@ -50,10 +50,13 @@ def validateDigit(data, cfg):
         """ Get indexes for train-test sets """
         for train_index, test_index in kf.split(digit):
             """ Concatenate train data into one matrix """
-            train_set = digit[0]
-            for i in range(1, len(digit)):
-                train_set = np.concatenate((train_set, digit[i]), axis=0)
+            train_set = digit[train_index[0]]
+            for index in train_index:
+                if not index == train_index[0]:
+                    train_set = np.concatenate((train_set, digit[index]), axis=0)
+            """ For each number generate unique estimator! """
             print(train_set.shape)
+
 
 config = loadConfig('config/gmm.cfg')
 MFCC, MFCC_labels = loadData('files/parametrized.p', 'files/mfcc_matrix_scheme.p')
