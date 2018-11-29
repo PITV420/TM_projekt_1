@@ -57,30 +57,33 @@ def validateDigit(data, cfg):
     for item in train_index:
         print(item)
 
-    models = []
     """ For each split """
-    for i in range(len(train_index)):
+    #for i in range(len(train_index)):
+    for i in range(1):
         """ Split data into separate digits """
+        models = []
         for digit in data:
             train_set = digit[train_index[i][0]]
             for index in train_index[i]:
                 if not index == train_index[i][0]:
                     train_set = np.concatenate((train_set, digit[index]), axis=0)
-            print(train_set.shape)
+            estimator = GaussianMixture(n_components=cfg['components'], max_iter=cfg['max_iterations'],
+                                        tol=cfg['toleration'], covariance_type=cfg['covariance_type'])
+            models.append(estimator.fit(train_set))
+        models = np.asarray(models)
 
-    # for digit in data:
-    #     """ Concatenate train data into one matrix """
-    #     train_set = digit[train_index[0]]
-    #     for index in train_index:
-    #         if not index == train_index[0]:
-    #             train_set = np.concatenate((train_set, digit[index]), axis=0)
-    #     estimator = GaussianMixture(n_components=cfg['components'], max_iter=cfg['max_iterations'],
-    #                                 tol=cfg['toleration'], covariance_type=cfg['covariance_type'])
-    #     models.append(estimator.fit(train_set))
+        """ Test models for train set """
+        like_matrix = []
+        for model in models:
+            like = []
+            for digit in data:
+                like.append(model.score(digit[test_index[i][0]]))
+            like_matrix.append(like)
 
+    return np.asarray(like_matrix)
 
 
 config = loadConfig('config/gmm.cfg')
 MFCC, MFCC_labels = loadData('files/parametrized.p', 'files/mfcc_matrix_scheme.p')
 MFCC, MFCC_labels = np.asarray(MFCC), np.asarray(MFCC_labels)
-validateDigit(MFCC, config)
+matrix_ = validateDigit(MFCC, config)
