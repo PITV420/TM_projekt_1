@@ -45,17 +45,39 @@ def loadData(pathMFCC, pathMFCC_labels):
 
 def validateDigit(data, cfg):
     kf = KFold(n_splits=5, shuffle=False, random_state=None)
-    """ Split data into separate digits """
-    for digit in data:
-        """ Get indexes for train-test sets """
-        for train_index, test_index in kf.split(digit):
-            """ Concatenate train data into one matrix """
-            train_set = digit[train_index[0]]
-            for index in train_index:
-                if not index == train_index[0]:
+
+    """ Get indexes of train-test subsets """
+    train_index = []
+    test_index = []
+    for train, test in kf.split(data[0]):
+        train_index.append(train)
+        test_index.append(test)
+    train_index = np.asarray(train_index)
+    test_index = np.asarray(test_index)
+    for item in train_index:
+        print(item)
+
+    models = []
+    """ For each split """
+    for i in range(len(train_index)):
+        """ Split data into separate digits """
+        for digit in data:
+            train_set = digit[train_index[i][0]]
+            for index in train_index[i]:
+                if not index == train_index[i][0]:
                     train_set = np.concatenate((train_set, digit[index]), axis=0)
-            """ For each number generate unique estimator! """
             print(train_set.shape)
+
+    # for digit in data:
+    #     """ Concatenate train data into one matrix """
+    #     train_set = digit[train_index[0]]
+    #     for index in train_index:
+    #         if not index == train_index[0]:
+    #             train_set = np.concatenate((train_set, digit[index]), axis=0)
+    #     estimator = GaussianMixture(n_components=cfg['components'], max_iter=cfg['max_iterations'],
+    #                                 tol=cfg['toleration'], covariance_type=cfg['covariance_type'])
+    #     models.append(estimator.fit(train_set))
+
 
 
 config = loadConfig('config/gmm.cfg')
