@@ -50,16 +50,16 @@ def validateDigit(data, cfg):
     train_index = []
     test_index = []
     for train, test in kf.split(data[0]):
+        print(train, test)
         train_index.append(train)
         test_index.append(test)
     train_index = np.asarray(train_index)
     test_index = np.asarray(test_index)
-    for item in train_index:
-        print(item)
 
+    rr_matrix = np.zeros((10, 10), dtype=int)
+    tests = 0
     """ For each split """
-    #for i in range(len(train_index)):
-    for i in range(1):
+    for i in range(len(train_index)):
         """ Split data into separate digits """
         models = []
         for digit in data:
@@ -73,14 +73,26 @@ def validateDigit(data, cfg):
         models = np.asarray(models)
 
         """ Test models for train set """
-        like_matrix = []
-        for model in models:
-            like = []
-            for digit in data:
-                like.append(model.score(digit[test_index[i][0]]))
-            like_matrix.append(like)
+        """ For each spoken digit """
 
-    return np.asarray(like_matrix)
+        """ For each speaker"""
+        for j in range(len(test_index[i])):
+            recog_matrix = []
+            for digit in data:
+                like = []
+                recog = np.zeros(10, dtype=int)
+                """ Score it by fitted models """
+                for model in models:
+                    like.append(model.score(digit[test_index[i][j]]))
+                """ Max likelihood is recognized digit """
+                recog[like.index(max(like))] = 1
+                recog_matrix.append(recog)
+
+            rr_matrix = np.add(rr_matrix, recog_matrix)
+            tests += 1
+
+
+    return np.asarray((rr_matrix / tests * 100).round().astype(int))
 
 
 config = loadConfig('config/gmm.cfg')
