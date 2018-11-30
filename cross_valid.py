@@ -78,6 +78,7 @@ def validateDigit(data, cfg):
         """ For each speaker"""
         for j in range(len(test_index[i])):
             recog_matrix = []
+            """ Check each digit """
             for digit in data:
                 like = []
                 recog = np.zeros(10, dtype=int)
@@ -88,9 +89,9 @@ def validateDigit(data, cfg):
                 recog[like.index(max(like))] = 1
                 recog_matrix.append(recog)
 
+            """ Add it to recognition matrix """
             rr_matrix = np.add(rr_matrix, recog_matrix)
             tests += 1
-
 
     return np.asarray((rr_matrix / tests * 100).round().astype(int))
 
