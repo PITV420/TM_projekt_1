@@ -50,7 +50,6 @@ def validateDigit(data, cfg):
     train_index = []
     test_index = []
     for train, test in kf.split(data[0]):
-        print(train, test)
         train_index.append(train)
         test_index.append(test)
     train_index = np.asarray(train_index)
@@ -71,9 +70,6 @@ def validateDigit(data, cfg):
                                         tol=cfg['toleration'], covariance_type=cfg['covariance_type'])
             models.append(estimator.fit(train_set))
         models = np.asarray(models)
-
-        """ Test models for train set """
-        """ For each spoken digit """
 
         """ For each speaker"""
         for j in range(len(test_index[i])):
