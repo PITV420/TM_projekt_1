@@ -16,7 +16,7 @@ def loadConfig(path):
 
         cfg['components'] = int(cfg['components'])
         cfg['max_iterations'] = int(cfg['max_iterations'])
-        cfg['toleration'] = float(cfg['toleration'])
+        cfg['tolerance'] = float(cfg['tolerance'])
         if not cfg['covariance_type'] == 'diag' and\
            not cfg['covariance_type'] == 'full' and\
            not cfg['covariance_type'] == 'tied' and\
@@ -28,7 +28,7 @@ def loadConfig(path):
         cfg = {
             'components': 8,
             'max_iterations': 30,
-            'toleration': 0.001,
+            'tolerance': 0.001,
             'covariance_type': 'diag',
         }
 
@@ -65,7 +65,7 @@ def validateDigit(data, cfg):
                 if not index == train_index[i][0]:
                     train_set = np.concatenate((train_set, digit[index]), axis=0)
             estimator = GaussianMixture(n_components=cfg['components'], max_iter=cfg['max_iterations'],
-                                        tol=cfg['toleration'], covariance_type=cfg['covariance_type'])
+                                        tol=cfg['tolerance'], covariance_type=cfg['covariance_type'])
             models.append(estimator.fit(train_set))
         models = np.asarray(models)
 
@@ -91,6 +91,6 @@ def validateDigit(data, cfg):
 
 
 config = loadConfig('config/gmm.cfg')
-MFCC, MFCC_labels = loadData('files/parametrized.p', 'files/mfcc_matrix_scheme.p')
+MFCC, MFCC_labels = loadData('files/parametrized_delta_delta.p', 'files/mfcc_matrix_scheme.p')
 MFCC, MFCC_labels = np.asarray(MFCC), np.asarray(MFCC_labels)
 matrix_ = validateDigit(MFCC, config)
