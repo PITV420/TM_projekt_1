@@ -47,10 +47,6 @@ def compute_gmm(data, cfg):
                                max_iter=cfg['max_iterations'], tol=cfg['toleration']).fit(data)
 
 
-parametrized_data = loadData('files/parametrized.p')
-config = loadConfig('config/gmm.cfg')
-
-
 def eachDigitGMM(data, cfg):
 
     """
@@ -88,10 +84,14 @@ def eachDigitGMM(data, cfg):
 
     return data_gmm
 
+
 def save(obj):
     file = open('files/digits_gmm.p', 'wb')
     pickle.dump(obj, file)
 
+
+parametrized_data = loadData('files/parametrized.p')
+config = loadConfig('config/gmm.cfg')
 
 data = eachDigitGMM(parametrized_data, config)
 
