@@ -1,4 +1,4 @@
-from python_speech_features import mfcc
+from python_speech_features import mfcc, delta
 import scipy.io.wavfile as wav
 import numpy as np
 import os
@@ -27,6 +27,8 @@ def loadConfig(path):
         cfg['cepstrum_number'] = int(cfg['cepstrum_number'])
         cfg['filter_number'] = int(cfg['filter_number'])
         cfg['preemphasis_filter'] = float(cfg['preemphasis_filter'])
+        cfg['delta_sample'] = int(cfg['delta_sample'])
+        cfg['delta_delta_sample'] = int(cfg['delta_delta_sample'])
         if cfg['window_function'] == 'bartlett':
             cfg['window_function'] = np.bartlett
         elif cfg['window_function'] == 'blackman':
@@ -46,7 +48,9 @@ def loadConfig(path):
             'cepstrum_number': 13,
             'filter_number': 26,
             'preemphasis_filter': 0.97,
-            'window_function': 'hamming'
+            'window_function': 'hamming',
+            'delta_sample': 2,
+            'delta_delta_sample': 2
         }
 
     return cfg
@@ -97,8 +101,19 @@ def restructure(data):
     return restructured
 
 
-def save(obj):
-    file = open('files/parametrized.p', 'wb')
+def computeDeltas(data, num):
+    deltas = []
+    for row in data:
+        new_row = []
+        for item in row:
+            new_row.append(delta(item, num))
+        deltas.append(new_row)
+
+    return deltas
+
+
+def save(obj, name):
+    file = open(name, 'wb')
     pickle.dump(obj, file)
 
 
@@ -112,5 +127,17 @@ for filename in os.listdir(file_directory):
         data_ = getData(file_directory, filename)
         parameters[data_[2]] = computeMFCC(data_[0], data_[1], config)
 
-rest = restructure(parameters)
-save(rest)
+data_ = restructure(parameters)
+save(data_, 'files/parametrized.p')
+
+deltas_ = computeDeltas(data_, config['delta_sample'])
+for i in range(len(data_)):
+    for j in range(len(data_[i])):
+        data_[i][j] = np.concatenate((data_[i][j], deltas_[i][j]), axis=1)
+save(data_, 'files/parametrized_delta.p')
+
+delta_deltas_ = computeDeltas(deltas_, config['delta_delta_sample'])
+for i in range(len(data_)):
+    for j in range(len(data_[i])):
+        data_[i][j] = np.concatenate((data_[i][j], delta_deltas_[i][j]), axis=1)
+save(data_, 'files/parametrized_delta_delta.p')
