@@ -6,8 +6,9 @@ import collections
 
 
 def loadData(path):
-    file = open(path, 'rb')
-    return pickle.load(file)
+    with open(path, 'rb') as file:
+        data = pickle.load(file)
+    return data
 
 
 def loadConfig(path):
@@ -23,10 +24,10 @@ def loadConfig(path):
 
         cfg['components'] = int(cfg['components'])
         cfg['max_iterations'] = int(cfg['max_iterations'])
-        cfg['toleration'] = float(cfg['toleration'])
-        if not cfg['covariance_type'] == 'diag' or\
-           not cfg['covariance_type'] == 'full' or\
-           not cfg['covariance_type'] == 'tied' or\
+        cfg['tolerance'] = float(cfg['tolerance'])
+        if not cfg['covariance_type'] == 'diag' and\
+           not cfg['covariance_type'] == 'full' and\
+           not cfg['covariance_type'] == 'tied' and\
            not cfg['covariance_type'] == 'spherical':
             cfg['covariance_type'] = 'diag'
 
@@ -35,54 +36,38 @@ def loadConfig(path):
         cfg = {
             'components': 8,
             'max_iterations': 30,
-            'toleration': 0.001,
+            'tolerance': 0.001,
             'covariance_type': 'diag',
         }
 
     return cfg
 
 
-def compute_gmm(data, cfg):
-    return GaussianMixture(n_components=cfg['components'], covariance_type=cfg['covariance_type'],
-                               max_iter=cfg['max_iterations'], tol=cfg['toleration']).fit(data)
-
-
 def eachDigitGMM(data, cfg):
+    """ Compute GMM models for each digit """
 
     """
-    Creates a dictionary consisting of connected matrices of MFCC for every speaker,
-    into one matrix for particular digit:
-
-        0: [[MFCC_Speaker_1_digit_0]
-            [MFCC_Speaker_2_digit_0]
-            .
-            .
-            .
-            [MFCC_Speaker_22_digit_0]]
-        .
-        .
-        .
-        9: [[MFCC_Speaker_1_digit_9]
-            [MFCC_Speaker_2_digit_9]
-            .
-            .
-            .
-            [MFCC_Speaker_22_digit_9]]
-
-        Returns GMM for matrix for each digit separately.
+    takes:
+        data - matrix of MFCC parametrized vocal samples.
+            rows - following spoken numbers
+            columns - following speakers
+        cfg - config file for GMM estimator
+        
+    returns:
+        Dictionary of GMM models, where key is the label of a digit and value is a GMM model
     """
 
-    data_gmm = {}
-    data_mfcc = {}
-    for key1 in data:
-        for key2 in data[key1]:
-            if key2 == list(data[key1].keys())[0]:
-                data_mfcc = data[key1][key2]
-            elif key2 > list(data[key1].keys())[0]:
-                data_mfcc = np.concatenate((data_mfcc, data[key1][key2]), axis=0)
-        data_gmm[key1] = compute_gmm(data_mfcc, cfg)
+    models = {}
+    for j in range(len(data)):
+        train_set = data[j][0]
+        for i in range(1, len(data[j])):
+            train_set = np.concatenate((train_set, data[j][i]), axis=0)
 
-    return data_gmm
+        estimator = GaussianMixture(n_components=cfg['components'], max_iter=cfg['max_iterations'],
+                                    tol=cfg['tolerance'], covariance_type=cfg['covariance_type'])
+        models[j] = estimator.fit(train_set)
+
+    return models
 
 
 def save(obj):
@@ -90,11 +75,11 @@ def save(obj):
     pickle.dump(obj, file)
 
 
-parametrized_data = loadData('files/parametrized.p')
+parametrized_data = loadData('files/parametrized_delta_delta.p')
 config = loadConfig('config/gmm.cfg')
 
-data = eachDigitGMM(parametrized_data, config)
+data_ = eachDigitGMM(parametrized_data, config)
 
-save(data)
+save(data_)
 
 
