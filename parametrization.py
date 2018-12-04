@@ -62,8 +62,7 @@ def computeMFCC(data, fs, cfg):
         fft_size *= 2
 
     data_mfcc = mfcc(data, samplerate=fs, nfft=fft_size, winlen=cfg['window_length'], winstep=cfg['window_step'],
-                     numcep=cfg['cepstrum_number'], nfilt=cfg['filter_number'], preemph=cfg['preemphasis_filter'],
-                     winfunc=cfg['window_function'])
+                     numcep=cfg['cepstrum_number'], nfilt=cfg['filter_number'], preemph=cfg['preemphasis_filter'], winfunc=cfg['window_function'])
 
     return data_mfcc
 
@@ -116,28 +115,28 @@ def save(obj, name):
     file = open(name, 'wb')
     pickle.dump(obj, file)
 
+for i in range(1, 25):
+    config = loadConfig('config/mfcc_config/mfcc_' +str(i)+ '.cfg')
+    parameters = {}
+    file_directory = 'files/train'
+    for filename in os.listdir(file_directory):
+        if filename.endswith('.wav'):
+            data_ = getData(file_directory, filename)
+            parameters[data_[2]] = computeMFCC(data_[0], data_[1], config)
 
-config = loadConfig('config/mfcc.cfg')
+    data_ = restructure(parameters)
+    save(data_, 'files/test_mfcc_mod/parametrized_' + str(i) + '.p')
 
-parameters = {}
+    deltas_ = computeDeltas(data_, config['delta_sample'])
 
-file_directory = 'files/train'
-for filename in os.listdir(file_directory):
-    if filename.endswith('.wav'):
-        data_ = getData(file_directory, filename)
-        parameters[data_[2]] = computeMFCC(data_[0], data_[1], config)
+    for i in range(len(data_)):
+        for j in range(len(data_[i])):
+            data_[i][j] = np.concatenate((data_[i][j], deltas_[i][j]), axis=1)
+    save(data_, 'files/test_mfcc_mod/parametrized_delta_' + str(i) +'.p')
 
-data_ = restructure(parameters)
-save(data_, 'files/parametrized.p')
+    delta_deltas_ = computeDeltas(deltas_, config['delta_delta_sample'])
 
-deltas_ = computeDeltas(data_, config['delta_sample'])
-for i in range(len(data_)):
-    for j in range(len(data_[i])):
-        data_[i][j] = np.concatenate((data_[i][j], deltas_[i][j]), axis=1)
-save(data_, 'files/parametrized_delta.p')
-
-delta_deltas_ = computeDeltas(deltas_, config['delta_delta_sample'])
-for i in range(len(data_)):
-    for j in range(len(data_[i])):
-        data_[i][j] = np.concatenate((data_[i][j], delta_deltas_[i][j]), axis=1)
-save(data_, 'files/parametrized_delta_delta.p')
+    for i in range(len(data_)):
+        for j in range(len(data_[i])):
+            data_[i][j] = np.concatenate((data_[i][j], delta_deltas_[i][j]), axis=1)
+    save(data_, 'files/test_mfcc_mod/parametrized_delta_delta_' + str(i) + '.p')
