@@ -85,16 +85,17 @@ def eachDigitGMM(data, cfg):
     return data_gmm
 
 
-def save(obj):
-    file = open('files/digits_gmm.p', 'wb')
+def save(obj, index):
+    file = open('files/GMM_models/digits_gmm_'+str(index)+'.p', 'wb')
     pickle.dump(obj, file)
 
 
 parametrized_data = loadData('files/parametrized.p')
-config = loadConfig('config/gmm.cfg')
+for i in range(1, 6):
+    config = loadConfig('config/gmm_config/gmm_' + str(i) + '.cfg')
 
-data = eachDigitGMM(parametrized_data, config)
+    data = eachDigitGMM(parametrized_data, config)
 
-save(data)
+    save(data, i)
 
 
