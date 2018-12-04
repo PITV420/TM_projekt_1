@@ -106,5 +106,6 @@ venv.bak/
 # pycharm
 .idea/
 
-# training files
+# training and evak files
 files/train/
+files/eval/
