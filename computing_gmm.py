@@ -1,3 +1,8 @@
+"""
+Train GMM models for each digit based on training data
+"""
+
+
 from sklearn.mixture import GaussianMixture
 from scipy.stats import norm
 import numpy as np
@@ -6,83 +11,88 @@ import collections
 
 
 def loadData(path):
-    file = open(path, 'rb')
-    return pickle.load(file)
+    with open(path, 'rb') as file:
+        data = pickle.load(file)
+    return data
 
 
 def loadConfig(path):
+    """
+    :param path: path to config file
+    :return: config dictionary
+    """
+
     try:
-        file = open(path, 'r')
-        lines = file.readlines()
-        file.close()
+        with open(path, 'r') as file:
+            lines = file.readlines()
+            file.close()
 
-        cfg = {}
-        for line in lines:
-            key, value = line.replace('\n', '').split('=')
-            cfg[key] = value
+            cfg = {}
+            for line in lines:
+                key, value = line.replace('\n', '').split('=')
+                cfg[key] = value
 
-        cfg['components'] = int(cfg['components'])
-        cfg['max_iterations'] = int(cfg['max_iterations'])
-        cfg['toleration'] = float(cfg['toleration'])
-        if not cfg['covariance_type'] == 'diag' or\
-           not cfg['covariance_type'] == 'full' or\
-           not cfg['covariance_type'] == 'tied' or\
-           not cfg['covariance_type'] == 'spherical':
-            cfg['covariance_type'] = 'diag'
+            cfg['window_length'] = float(cfg['window_length'])
+            cfg['window_step'] = float(cfg['window_step'])
+            cfg['cepstrum_number'] = int(cfg['cepstrum_number'])
+            cfg['filter_number'] = int(cfg['filter_number'])
+            cfg['preemphasis_filter'] = float(cfg['preemphasis_filter'])
+            cfg['use_delta'] = bool(cfg['use_delta'])
+            cfg['delta_sample'] = int(cfg['delta_sample'])
+            cfg['use_delta_delta'] = bool(cfg['use_delta_delta'])
+            cfg['delta_delta_sample'] = int(cfg['delta_delta_sample'])
+            if cfg['window_function'] == 'bartlett':
+                cfg['window_function'] = np.bartlett
+            elif cfg['window_function'] == 'blackman':
+                cfg['window_function'] = np.blackman
+            elif cfg['window_function'] == 'hanning':
+                cfg['window_function'] = np.hanning
+            elif cfg['window_function'] == 'kaiser':
+                cfg['window_function'] = np.kaiser
+            else:
+                cfg['window_function'] = np.hamming
 
     except Exception as e:
         print('Error:', e, '// using default config')
         cfg = {
-            'components': 8,
-            'max_iterations': 30,
-            'toleration': 0.001,
-            'covariance_type': 'diag',
+            'window_length': 0.025,
+            'window_step': 0.01,
+            'cepstrum_number': 13,
+            'filter_number': 26,
+            'preemphasis_filter': 0.97,
+            'window_function': 'hamming',
+            'delta_sample': 2,
+            'use_delta': True,
+            'delta_delta_sample': 2,
+            'use_delta_delta': True
         }
 
     return cfg
 
 
-def compute_gmm(data, cfg):
-    return GaussianMixture(n_components=cfg['components'], covariance_type=cfg['covariance_type'],
-                               max_iter=cfg['max_iterations'], tol=cfg['toleration']).fit(data)
-
-
 def eachDigitGMM(data, cfg):
-
     """
-    Creates a dictionary consisting of connected matrices of MFCC for every speaker,
-    into one matrix for particular digit:
+    Compute GMM models for each digit
 
-        0: [[MFCC_Speaker_1_digit_0]
-            [MFCC_Speaker_2_digit_0]
-            .
-            .
-            .
-            [MFCC_Speaker_22_digit_0]]
-        .
-        .
-        .
-        9: [[MFCC_Speaker_1_digit_9]
-            [MFCC_Speaker_2_digit_9]
-            .
-            .
-            .
-            [MFCC_Speaker_22_digit_9]]
+    :param data: matrix of MFCC parametrized vocal samples.
+                    rows - following spoken numbers
+                    columns - following speakers
+    :param cfg: config file for GMM estimator
 
-        Returns GMM for matrix for each digit separately.
+    :return: Dictionary of GMM models, where key is the label of a digit and value is a GMM model
     """
 
-    data_gmm = {}
-    data_mfcc = {}
-    for key1 in data:
-        for key2 in data[key1]:
-            if key2 == list(data[key1].keys())[0]:
-                data_mfcc = data[key1][key2]
-            elif key2 > list(data[key1].keys())[0]:
-                data_mfcc = np.concatenate((data_mfcc, data[key1][key2]), axis=0)
-        data_gmm[key1] = compute_gmm(data_mfcc, cfg)
+    models = {}
+    for j in range(len(data)):
+        train_set = data[j][0]
+        for i in range(1, len(data[j])):
+            train_set = np.concatenate((train_set, data[j][i]), axis=0)
 
-    return data_gmm
+        estimator = GaussianMixture(n_components=cfg['components'], max_iter=cfg['max_iterations'],
+                                    tol=cfg['tolerance'], covariance_type=cfg['covariance_type'])
+        models[j] = estimator.fit(train_set)
+
+    return models
 
 
 def save(obj):
@@ -93,8 +103,8 @@ def save(obj):
 parametrized_data = loadData('files/parametrized.p')
 config = loadConfig('config/gmm.cfg')
 
-data = eachDigitGMM(parametrized_data, config)
+data_ = eachDigitGMM(parametrized_data, config)
 
-save(data)
+save(data_)
 
 
