@@ -131,15 +131,22 @@ def save(obj, name):
     pickle.dump(obj, file)
 
 
-config = loadConfig('config/mfcc.cfg')
+def main():
+    """
+    Parametrize train set using mfcc algorithm
 
-parameters = {}
+    :save: data to parametrized.p
+    """
 
-file_directory = 'files/train'
-for filename in os.listdir(file_directory):
-    if filename.endswith('.wav'):
-        data_ = getData(file_directory, filename)
-        parameters[data_[2]] = computeMFCC(data_[0], data_[1], config)
+    config = loadConfig('config/mfcc.cfg')
 
-data_ = restructure(parameters)
-save(data_, 'files/parametrized.p')
+    parameters = {}
+
+    file_directory = 'files/train'
+    for filename in os.listdir(file_directory):
+        if filename.endswith('.wav'):
+            data_ = getData(file_directory, filename)
+            parameters[data_[2]] = computeMFCC(data_[0], data_[1], config)
+
+    data_ = restructure(parameters)
+    save(data_, 'files/parametrized.p')
