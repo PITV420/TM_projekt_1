@@ -47,7 +47,7 @@ def loadConfig(path):
 
 def loadData(pathMFCC, pathMFCC_labels):
     with open(pathMFCC, 'rb') as fileMFCC:
-        dataMFCC = pickle.load(pathMFCC)
+        dataMFCC = pickle.load(fileMFCC)
 
     with open(pathMFCC_labels, 'rb') as fileMFCC_labels:
         dataMFCC_labels = pickle.load(fileMFCC_labels)
