@@ -11,6 +11,8 @@ import operator
 from python_speech_features import delta
 from parametrization import loadConfig, computeMFCC, audio_reader
 import evaluate
+import parametrization
+import computing_gmm
 
 
 def loadData(dir, cfg):
@@ -30,14 +32,6 @@ def loadData(dir, cfg):
 
             data_mfcc = computeMFCC(data_raw, rate, cfg)
             data_par[filename] = data_mfcc
-
-            if cfg['use_delta'] or cfg['use_delta_delta']:
-                data_delta = delta(data_mfcc, cfg['delta_sample'])
-                data_par[filename] = np.concatenate((data_par[filename], data_delta), axis=1)
-
-            if cfg['use_delta_delta']:
-                data_delta_delta = delta(data_mfcc, cfg['delta_delta_sample'])
-                data_par[filename] = np.concatenate((data_par[filename], data_delta_delta), axis=1)
 
     return data_par
 
@@ -79,9 +73,22 @@ def saveResult(data):
             writer.writerow([key, data[key][0], data[key][1]])
 
 
-config = loadConfig('config/mfcc.cfg')
-mfcc_data = loadData('files/eval', config)
-gmm_models = loadModels('files/digits_gmm.p')
-scores_ = scoreSamples(mfcc_data, gmm_models)
-saveResult(scores_)
-evaluate.evaluate('files/results.csv')
+def main():
+    """
+    Parametrize evaluation set and score it according to config files
+
+    :save: data in results.csv
+    :print: confusion matrix for labeled samples
+    """
+
+    parametrization.main()
+    computing_gmm.main()
+
+    config = loadConfig('config/mfcc.cfg')
+    mfcc_data = loadData('files/eval', config)
+    gmm_models = loadModels('files/digits_gmm.p')
+    scores_ = scoreSamples(mfcc_data, gmm_models)
+    saveResult(scores_)
+    evaluate.evaluate('files/results.csv')
+
+main()

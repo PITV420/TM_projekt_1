@@ -55,12 +55,13 @@ def loadData(pathMFCC, pathMFCC_labels):
     return dataMFCC, dataMFCC_labels
 
 
-def validateDigit(data, cfg):
+def validateDigit(data, cfg, norm):
     """
     Cross-validate models
 
     :param data: matrix of mfcc matrices computed by parametrization.py
     :param cfg: config dictionary
+    :param norm: normalize values in the matrix
     :return: confusion matrix for train-test data
     """
 
@@ -109,10 +110,22 @@ def validateDigit(data, cfg):
             rr_matrix = np.add(rr_matrix, recog_matrix)
             tests += 1
 
-    return np.asarray(rr_matrix)
+    if norm:
+        return np.asarray(rr_matrix / tests * 100).astype(int)
+    else:
+        return np.asarray(rr_matrix)
 
 
-config = loadConfig('config/gmm.cfg')
-MFCC, MFCC_labels = loadData('files/parametrized.p', 'files/mfcc_matrix_scheme.p')
-MFCC, MFCC_labels = np.asarray(MFCC), np.asarray(MFCC_labels)
-matrix_ = validateDigit(MFCC, config)
+def main(normalized=True):
+    """
+    Calculate confusion matrix for previously parametrized train data based on kfold cross-validation
+
+    :param normalized: should data in confusion matrix be in percent or in number of recognized samples
+    :return: confusion matrix
+    """
+
+    config = loadConfig('config/gmm.cfg')
+    MFCC, MFCC_labels = loadData('files/parametrized.p', 'files/mfcc_matrix_scheme.p')
+    MFCC, MFCC_labels = np.asarray(MFCC), np.asarray(MFCC_labels)
+
+    return validateDigit(MFCC, config, normalized)

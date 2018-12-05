@@ -18,7 +18,7 @@ def loadData(path):
 
 def loadConfig(path):
     """
-    :param path: path to config file
+    :param path: path to a config file
     :return: config dictionary
     """
 
@@ -32,39 +32,22 @@ def loadConfig(path):
                 key, value = line.replace('\n', '').split('=')
                 cfg[key] = value
 
-            cfg['window_length'] = float(cfg['window_length'])
-            cfg['window_step'] = float(cfg['window_step'])
-            cfg['cepstrum_number'] = int(cfg['cepstrum_number'])
-            cfg['filter_number'] = int(cfg['filter_number'])
-            cfg['preemphasis_filter'] = float(cfg['preemphasis_filter'])
-            cfg['use_delta'] = bool(cfg['use_delta'])
-            cfg['delta_sample'] = int(cfg['delta_sample'])
-            cfg['use_delta_delta'] = bool(cfg['use_delta_delta'])
-            cfg['delta_delta_sample'] = int(cfg['delta_delta_sample'])
-            if cfg['window_function'] == 'bartlett':
-                cfg['window_function'] = np.bartlett
-            elif cfg['window_function'] == 'blackman':
-                cfg['window_function'] = np.blackman
-            elif cfg['window_function'] == 'hanning':
-                cfg['window_function'] = np.hanning
-            elif cfg['window_function'] == 'kaiser':
-                cfg['window_function'] = np.kaiser
-            else:
-                cfg['window_function'] = np.hamming
+            cfg['components'] = int(cfg['components'])
+            cfg['max_iterations'] = int(cfg['max_iterations'])
+            cfg['tolerance'] = float(cfg['tolerance'])
+            if not cfg['covariance_type'] == 'diag' and\
+               not cfg['covariance_type'] == 'full' and\
+               not cfg['covariance_type'] == 'tied' and\
+               not cfg['covariance_type'] == 'spherical':
+                cfg['covariance_type'] = 'diag'
 
     except Exception as e:
         print('Error:', e, '// using default config')
         cfg = {
-            'window_length': 0.025,
-            'window_step': 0.01,
-            'cepstrum_number': 13,
-            'filter_number': 26,
-            'preemphasis_filter': 0.97,
-            'window_function': 'hamming',
-            'delta_sample': 2,
-            'use_delta': True,
-            'delta_delta_sample': 2,
-            'use_delta_delta': True
+            'components': 8,
+            'max_iterations': 30,
+            'tolerance': 0.001,
+            'covariance_type': 'diag',
         }
 
     return cfg
@@ -100,11 +83,17 @@ def save(obj):
     pickle.dump(obj, file)
 
 
-parametrized_data = loadData('files/parametrized.p')
-config = loadConfig('config/gmm.cfg')
+def main():
+    """
+    Train GMM models of every digit based on previously parametrized data and config files
 
-data_ = eachDigitGMM(parametrized_data, config)
+    :save: models in digits_gmm.p
+    """
+    parametrized_data = loadData('files/parametrized.p')
+    config = loadConfig('config/gmm.cfg')
 
-save(data_)
+    data_ = eachDigitGMM(parametrized_data, config)
+
+    save(data_)
 
 
