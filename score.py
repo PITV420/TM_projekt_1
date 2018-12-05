@@ -1,3 +1,8 @@
+"""
+Recognize samples using previously trained models and show confusion matrix
+"""
+
+
 import pickle
 import csv
 import os
@@ -5,18 +10,16 @@ import numpy as np
 import operator
 from python_speech_features import delta
 from parametrization import loadConfig, computeMFCC, audio_reader
+import evaluate
 
 
 def loadData(dir, cfg):
-    """ Load and parametrize data for scoring samples """
-
     """
-    takes:
-        dir - string containing path to a directory with samples to score
-        cfg - config file for MFCC parametrization
-        
-    returns:
-        dictionary of parametrized samples, whose key is file name and value is MFCC matrix
+    Load and parametrize data for scoring samples
+
+    :param dir: string containing path to a directory with samples to score
+    :param cfg: config file for MFCC parametrization
+    :return: dictionary of parametrized samples, whose key is file name and value is MFCC matrix
     """
 
     data_par = {}
@@ -28,11 +31,13 @@ def loadData(dir, cfg):
             data_mfcc = computeMFCC(data_raw, rate, cfg)
             data_par[filename] = data_mfcc
 
-            data_delta = delta(data_mfcc, cfg['delta_sample'])
-            data_par[filename] = np.concatenate((data_par[filename], data_delta), axis=1)
+            if cfg['use_delta'] or cfg['use_delta_delta']:
+                data_delta = delta(data_mfcc, cfg['delta_sample'])
+                data_par[filename] = np.concatenate((data_par[filename], data_delta), axis=1)
 
-            data_delta_delta = delta(data_mfcc, cfg['delta_delta_sample'])
-            data_par[filename] = np.concatenate((data_par[filename], data_delta_delta), axis=1)
+            if cfg['use_delta_delta']:
+                data_delta_delta = delta(data_mfcc, cfg['delta_delta_sample'])
+                data_par[filename] = np.concatenate((data_par[filename], data_delta_delta), axis=1)
 
     return data_par
 
@@ -44,6 +49,18 @@ def loadModels(path):
 
 
 def scoreSamples(data, models):
+    """
+    Score evaluation samples by digit models
+
+    :param data: dictionary of evaluation data
+    :param models: dictionary of trained GMM models
+
+    :return: dictionary of labeled samples
+        format:
+            key,            (value1,    value2)
+            file name,      label,      log-likelihood
+    """
+
     scores = {}
     for sample in data:
         sample_scores = {}
@@ -67,3 +84,4 @@ mfcc_data = loadData('files/eval', config)
 gmm_models = loadModels('files/digits_gmm.p')
 scores_ = scoreSamples(mfcc_data, gmm_models)
 saveResult(scores_)
+evaluate.evaluate('files/results.csv')

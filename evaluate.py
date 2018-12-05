@@ -290,5 +290,3 @@ def load_keys():
     keys['199.wav'] = 4
     keys['200.wav'] = 4
     return keys
-
-evaluate('files/results.csv')
